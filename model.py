@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
+#import sys
 import pygame as pg
-import sys
-import render
 # from render import Color
-import parsing
 import algorithms
+import render
+import parsing
 
 MAP = "olivier.map"
 

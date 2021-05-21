@@ -12,7 +12,6 @@ class Unit:
     color = Color.WHITE
     coupled = False
     def __init__(self, graph, pos):
-        x, y, z = pos
         self.edge = graph.get(pos)
         self.edge.unit = self
         self.id = Unit.id = Unit.id + 1
@@ -52,9 +51,11 @@ class Wagon(Unit):
         self.good_loaded = good
         self.loaded = loaded
 
-    def load(loaded, x):
-        if (loaded in goods):
-            pass
+    def load():
+        pass
+
+    def unload():
+        pass
 
     def __repr__(self):
         return f"<Unit ID: {self.id} | Position {self.edge.pos} | {type(self).__name__} | Loaded: {self.good_loaded.value} ({self.loaded}/{self.capacity}) >"
@@ -186,16 +187,16 @@ class Train:
         r.append(")")
         return '\n'.join(r)
 
-    def allowed_moves(self, graph):
+    def allowed_moves(self):
         def fdeny(unit):
             def filtering(allowed):
                 return allowed[:2] != unit.edge.pos[:2]
             return filtering
 
-        allowed_head = graph_rules(self.head.edge.pos, graph, mode="move")
+        allowed_head = graph_rules(self.head.edge.pos, self.graph, mode="move")
         allowed_tail = set()
         if self.wagons != []:
-            allowed_tail = graph_rules(self.wagons[-1].edge.pos, graph, mode="move")
+            allowed_tail = graph_rules(self.wagons[-1].edge.pos, self.graph, mode="move")
         if len(self.wagons) > 0:
             deny = lambda unit: (lambda allowed: allowed[:2] != unit.edge.pos[:2])
             allowed_head = set(filter(fdeny(self.wagons[0]), allowed_head))

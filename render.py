@@ -57,17 +57,17 @@ def draw_block(sc, block_x, block_y, type="E"):
             zx, zy = bx - HALF_BLOCK_SIZE, by - HALF_BLOCK_SIZE // 3 + 1
             zsx, zsy = BLOCK_SIZE, 2 * HALF_BLOCK_SIZE // 3
             if (type[2] == "N"):
-                    px, py = bx - HALF_BLOCK_SIZE, by - HALF_BLOCK_SIZE + 2
-                    psx, psy = BLOCK_SIZE, HALF_BLOCK_SIZE - 1
+                px, py = bx - HALF_BLOCK_SIZE, by - HALF_BLOCK_SIZE + 2
+                psx, psy = BLOCK_SIZE, HALF_BLOCK_SIZE - 1
             if (type[2] == "S"):
-                    px, py = bx - HALF_BLOCK_SIZE, by + 1
-                    psx, psy = BLOCK_SIZE, HALF_BLOCK_SIZE - 1
+                px, py = bx - HALF_BLOCK_SIZE, by + 1
+                psx, psy = BLOCK_SIZE, HALF_BLOCK_SIZE - 1
             if (type[2] == "W"):
-                    px, py = bx - HALF_BLOCK_SIZE + 2, by - HALF_BLOCK_SIZE
-                    psx, psy = HALF_BLOCK_SIZE - 1, BLOCK_SIZE                
+                px, py = bx - HALF_BLOCK_SIZE + 2, by - HALF_BLOCK_SIZE
+                psx, psy = HALF_BLOCK_SIZE - 1, BLOCK_SIZE                
             if (type[2] == "E"):
-                    px, py = bx + 1, by - HALF_BLOCK_SIZE
-                    psx, psy = HALF_BLOCK_SIZE - 1, BLOCK_SIZE
+                px, py = bx + 1, by - HALF_BLOCK_SIZE
+                psx, psy = HALF_BLOCK_SIZE - 1, BLOCK_SIZE
 
         #Platform
         draw_rectangle(sc,

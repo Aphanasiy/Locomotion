@@ -3,13 +3,9 @@ from dictionary import Color
 
 
 
-class Graph:
-    n, m = None, None
-    g = []
+class Graph: 
     edges = {}
     def __init__(self, m, n):
-        self.g = [set() for i in range(n + m + 2 * n * m)]
-        self.n, self.m = n, m
 
     # def up(self, j, i): return i + (2 * self.m + 1) * j    
     # def left(self, j, i): return i + (2 * self.m + 1) * j + self.m    
