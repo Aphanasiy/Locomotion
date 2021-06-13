@@ -45,42 +45,47 @@ def draw_rectangle(sc, point_LU, size, color=Color.WHITE, width=1):
     pg.draw.rect(sc, color.value, (*point_LU, *size), width)
 
 
-def draw_block(sc, block_x, block_y, type="E"):
-    bx, by = find_block_center(block_x, block_y)
-    d = gph.TERMS[type]
-    if (type[0] == "E"):
+def draw_platform(sc, block_x, block_y, platform_type):
+    #print(block_x, block_y, platform_type)
+    if platform_type is None:
         return
-    if (type[0] == "P"):
-        zx, zy, zsx, zsy = None, None, None, None
-        px, py, psx, psy = None, None, None, None
-        if (type[1] == "H"):
-            zx, zy = bx - HALF_BLOCK_SIZE, by - HALF_BLOCK_SIZE // 3 + 1
-            zsx, zsy = BLOCK_SIZE, 2 * HALF_BLOCK_SIZE // 3
-            if (type[2] == "N"):
-                px, py = bx - HALF_BLOCK_SIZE, by - HALF_BLOCK_SIZE + 2
-                psx, psy = BLOCK_SIZE, HALF_BLOCK_SIZE - 1
-            if (type[2] == "S"):
-                px, py = bx - HALF_BLOCK_SIZE, by + 1
-                psx, psy = BLOCK_SIZE, HALF_BLOCK_SIZE - 1
-            if (type[2] == "W"):
-                px, py = bx - HALF_BLOCK_SIZE + 2, by - HALF_BLOCK_SIZE
-                psx, psy = HALF_BLOCK_SIZE - 1, BLOCK_SIZE                
-            if (type[2] == "E"):
-                px, py = bx + 1, by - HALF_BLOCK_SIZE
-                psx, psy = HALF_BLOCK_SIZE - 1, BLOCK_SIZE
-
-        #Platform
-        draw_rectangle(sc,
+    bx, by = find_block_center(block_x, block_y)
+    zx, zy = bx - HALF_BLOCK_SIZE, by - HALF_BLOCK_SIZE // 3 + 1
+    zsx, zsy = BLOCK_SIZE, 2 * HALF_BLOCK_SIZE // 3
+    if (platform_type == "N"):
+        px, py = bx - HALF_BLOCK_SIZE, by - HALF_BLOCK_SIZE + 2
+        psx, psy = BLOCK_SIZE, HALF_BLOCK_SIZE - 1
+    if (platform_type == "S"):
+        px, py = bx - HALF_BLOCK_SIZE, by + 1
+        psx, psy = BLOCK_SIZE, HALF_BLOCK_SIZE - 1
+    if (platform_type == "W"):
+        px, py = bx - HALF_BLOCK_SIZE + 2, by - HALF_BLOCK_SIZE
+        psx, psy = HALF_BLOCK_SIZE - 1, BLOCK_SIZE                
+    if (platform_type == "E"):
+        px, py = bx + 1, by - HALF_BLOCK_SIZE
+        psx, psy = HALF_BLOCK_SIZE - 1, BLOCK_SIZE
+    #Platform
+    draw_rectangle(sc,
                (px, py),
                (psx, psy),
                color=Color.GREY,
                width = 0)
 
-        #Placeholder
-        draw_rectangle(sc, 
+    #Placeholder
+    draw_rectangle(sc, 
                   (zx, zy), 
                   (zsx, zsy),
                   color=Color.BLACK)
+
+
+def draw_block(sc, block_x, block_y, type="E"):
+    bx, by = find_block_center(block_x, block_y)
+    d = gph.TERMS[type]
+    if (type[0] in {"E", "P"}):
+        return
+    # if (type[0] == "P"):
+        # 
+        
             
 
     if (type[0] == "B"):
@@ -160,23 +165,23 @@ def unit(sc, uunit):
     sc.blit(img, (slux, sluy))
 
 
-def edge(sc, e):
+def edge(sc, e, color=Color.PATH_BASE):
     x, y = e.pos[:2]
     bx, by = find_block_center(x, y)
     width = max(1, (-(-BLOCK_SIZE // 15)))
     rail_id = e.pos[2]
     if rail_id == 1:
-        draw_line(sc, (bx - HALF_BLOCK_SIZE, by), (bx + HALF_BLOCK_SIZE, by), color=e.color)
+        draw_line(sc, (bx - HALF_BLOCK_SIZE, by), (bx + HALF_BLOCK_SIZE, by), color=color)
     if rail_id == 2:
-        draw_line(sc, (bx, by - HALF_BLOCK_SIZE), (bx, by + HALF_BLOCK_SIZE), color=e.color)
+        draw_line(sc, (bx, by - HALF_BLOCK_SIZE), (bx, by + HALF_BLOCK_SIZE), color=color)
     if rail_id == 3:
-        draw_line(sc, (bx + HALF_BLOCK_SIZE, by), (bx, by - HALF_BLOCK_SIZE), color=e.color)
+        draw_line(sc, (bx + HALF_BLOCK_SIZE, by), (bx, by - HALF_BLOCK_SIZE), color=color)
     if rail_id == 4:
-        draw_line(sc, (bx + HALF_BLOCK_SIZE, by), (bx, by + HALF_BLOCK_SIZE), color=e.color)
+        draw_line(sc, (bx + HALF_BLOCK_SIZE, by), (bx, by + HALF_BLOCK_SIZE), color=color)
     if rail_id == 5:
-        draw_line(sc, (bx - HALF_BLOCK_SIZE, by), (bx, by + HALF_BLOCK_SIZE), color=e.color)
+        draw_line(sc, (bx - HALF_BLOCK_SIZE, by), (bx, by + HALF_BLOCK_SIZE), color=color)
     if rail_id == 6:
-        draw_line(sc, (bx - HALF_BLOCK_SIZE, by), (bx, by - HALF_BLOCK_SIZE), color=e.color)
+        draw_line(sc, (bx - HALF_BLOCK_SIZE, by), (bx, by - HALF_BLOCK_SIZE), color=color)
 
 
 

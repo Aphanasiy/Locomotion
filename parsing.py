@@ -44,9 +44,9 @@ def graphify(named_map):
     def edges(typ, i, j):
         if typ[0] == "P":
             if typ[1] == "H":
-                yield Edge((i, j, 1))
+                yield Edge((i, j, 1), platform=typ[2])
             if typ[1] == "V":
-                yield Edge((i, j, 2))
+                yield Edge((i, j, 2), platform=typ[2])
         if typ[0] == "R":
             mask = int(typ[1:])
             if mask & (1 << 0) > 0: yield Edge((i, j, 1))
@@ -80,25 +80,36 @@ def parse_units(fin, t, graph):
         else:
             capacity = 5
             good_load = Good.EMPTY
+            loaded = 0
             if len(oth) >= 1:
                 capacity, oth = oth[0], oth[1:]
             if len(oth) >= 1:
                 good_load, oth = eval(oth[0]), oth[1:]
-            if (typ == "P"):
-                wagons.append(Platform(graph, (x, y, z), capacity, good_load))
-            elif (typ == "H"):
-                wagons.append(Hopper(graph, (x, y, z), capacity, good_load))
-            elif (typ == "B"):
-                wagons.append(Boxcar(graph, (x, y, z), capacity, good_load))
-            elif (typ == "T"):
-                wagons.append(Tank(graph, (x, y, z), capacity, good_load))
-            elif (typ == "D"):
-                wagons.append(Dumpcar(graph, (x, y, z), capacity, good_load))
-            elif (typ == "G"):
-                wagons.append(Gondola(graph, (x, y, z), capacity, good_load))
+            if len(oth) >= 1:
+                loaded, oth = eval(oth[0]), oth[1:]
+
+            wagon_type = Unit
+            
+            avaliable_types = {
+                "P": Platform,
+                "H": Hopper,
+                "B": Boxcar,
+                "T": Tank,
+                "D": Dumpcar,
+                "G": Gondola
+            }
+            if typ in avaliable_types:
+                wagon_type = avaliable_types[typ]
+                wagons.append(wagon_type(graph, (x, y, z), capacity, good_load, loaded))
             else:
                 wagons.append(Unit(graph, (x, y, z)))
     return wagons, trains
+
+
+def parse_scenario(file):
+    fin = open(file, 'r')
+    tasks = fin.readlines()
+
 
 
 def parse_map(file):

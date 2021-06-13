@@ -2,7 +2,7 @@ import render
 from dictionary import Color, Good
 
 
-COOLDOWN = 20
+COOLDOWN = 5
 
 
 class Unit:
@@ -62,34 +62,34 @@ class Wagon(Unit):
 
 
 class Platform(Wagon):
-    def __init__(self, graph, pos, capacity, loaded=Good.EMPTY):
+    def __init__(self, graph, pos, capacity, good=Good.EMPTY, loaded=0):
         self.color = Color.VIOLET
-        super().__init__(graph, pos, capacity, loaded)
+        super().__init__(graph, pos, capacity, good, loaded)
 
 class  Boxcar(Wagon):    #Крытый
-    def __init__(self, graph, pos, capacity, loaded=Good.EMPTY):
+    def __init__(self, graph, pos, capacity, good=Good.EMPTY, loaded=0):
         self.color = Color.GREEN
-        super().__init__(graph, pos, capacity, loaded)
+        super().__init__(graph, pos, capacity, good, loaded)
 
 class Gondola(Wagon):   #Полувагон
-    def __init__(self, graph, pos, capacity, loaded=Good.EMPTY):
-        self.color = Color.BROWN
-        super().__init__(graph, pos, capacity, loaded)
+    def __init__(self, graph, pos, capacity, good=Good.EMPTY, loaded=0):
+        self.color = Color.BLACK
+        super().__init__(graph, pos, capacity, good, loaded)
 
 class  Hopper(Wagon):    #Хоппер
-    def __init__(self, graph, pos, capacity, loaded=Good.EMPTY):
+    def __init__(self, graph, pos, capacity, good=Good.EMPTY, loaded=0):
         self.color = Color.PINK
-        super().__init__(graph, pos, capacity, loaded)
+        super().__init__(graph, pos, capacity, good, loaded)
 
 class Dumpcar(Wagon):
-    def __init__(self, graph, pos, capacity, loaded=Good.EMPTY):
-        self.color = Color.BLACK
-        super().__init__(graph, pos, capacity, loaded)
+    def __init__(self, graph, pos, capacity, good=Good.EMPTY, loaded=0):
+        self.color = Color.BROWN
+        super().__init__(graph, pos, capacity, good, loaded)
 
 class    Tank(Wagon):      #Цистерна
-    def __init__(self, graph, pos, capacity, loaded=Good.EMPTY):
+    def __init__(self, graph, pos, capacity, good=Good.EMPTY, loaded=0):
         self.color = Color.BLUE
-        super().__init__(graph, pos, capacity, loaded)
+        super().__init__(graph, pos, capacity, good, loaded)
 
 
 def graph_rules(pos, graph=None, mode="move"): #mode: move/couple
@@ -171,6 +171,7 @@ class Train:
     path = None
     id = 0
     cooldown = COOLDOWN
+    previous_status = None
     def __init__(self, main_unit, graph):
         if (not isinstance(main_unit, Loco)):
             raise Exception(f"Train must be initialized with a Locomotive. It was initialized with {unit} instead.")
@@ -228,6 +229,10 @@ class Train:
                 forward = False                
 
         if forward:
+            if self.wagons:
+                self.wagons[-1].edge.reserved = False
+            else:
+                self.head.edge.reserved = False
             last_pos = self.head.edge.pos
             self.head.move(self.graph.get(pos))
             for w in self.wagons:
@@ -235,6 +240,7 @@ class Train:
                 last_pos = w.edge.pos
                 w.move(self.graph.get(pos))
         else:
+            self.head.edge.reserved = False
             last_pos = pos
             for w in self.wagons[::-1]:
                 last_pos = w.edge.pos
@@ -244,8 +250,12 @@ class Train:
         
 
     def set_path(self, path):
+        if self.path is not None:
+            self.path.clear()
         self.path = path
+        self.previous_status = None
         print("Path setted")
+        print(self.path.path_container)
 
     def process(self):
         if self.path is None:
@@ -254,12 +264,34 @@ class Train:
             self.cooldown -= 1
             return
         
-        next_move = self.path.next()
-        if self.path.next(False) is None:
+        allowed, next_move = self.path.next(False)
+        print(">>> ", self.id, allowed, self.previous_status)
+        if allowed is None:
+            self.previous_status = allowed
             self.path = None
-        else:
+            for u in [self.head] + self.wagons:
+                u.edge.reserved = False
+            return
+        elif allowed:
+            if (self.previous_status is not None and self.previous_status == False):
+                print("!!! !!! !!! GEN_NEW_PATH !!! !!! !!!")
+                new_path = self.path.regenerate_path(self)
+                if (new_path is None):
+                    previous_status = False
+                else:
+                    self.set_path(new_path)
+                    self.previous_status = allowed
+                self.cooldown = 2 * COOLDOWN
+                return
+            _, next_move = self.path.next()
             self.cooldown = COOLDOWN
-
+            self.previous_status = allowed
+    
+        else:
+            self.previous_status = allowed
+            self.path.render()
+            self.cooldown = 2 * COOLDOWN
+            return
         self.single_move(next_move[0][((next_move[1] - 1)// 2)], check=False, forward=((next_move[1] + 1) // 2))
 
     def couple(self, graph, unit):

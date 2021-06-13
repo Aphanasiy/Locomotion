@@ -8,53 +8,91 @@ class Path():
     path_container = []
     graph = None
     rcolors = (None, None)
-    def __init__(self, graph, path, reserved_colors = (Color.RED, Color.RED)):
+    final_point = None
+    train = None
+    def __init__(self, graph, path_container,
+                 final_point=(None, None, None), # point@(x, y, z), head/tail, safe/unsafe
+                 reserved_colors = (Color.PATH_RESERVED, Color.PATH_RESERVED)):
         self.graph = graph
-        self.path_container = path
         self.rcolors = reserved_colors
+        self.path_container = path_container
         self.render()
+        self.final_point = final_point
     def render(self):
         #print(*self.path_container, sep='\n')
-        for p in self.path_container:
+        is_reserved = False
+        i = len(self.path_container)
+        for i in range(len(self.path_container) - 1, -1, -1):
+            a, b = self.path_container[i][0]
+            direction = self.path_container[i][1]
+            print(a, b)
+            is_reserved = any(map(lambda x: x.reserved,
+                                  (self.graph.get_edges_by_block(*a[:2]) if direction ==  1 else []) + \
+                                  (self.graph.get_edges_by_block(*b[:2]) if direction == -1 else [])))    
+            if is_reserved: break
+        print("-|-|-", i, len(self.path_container))
+        for p in self.path_container[i + is_reserved * 2:]:
             a, b = p[0]
-            self.graph.get(a).color = self.rcolors[0]
-            self.graph.get(b).color = self.rcolors[1]
+            self.graph.get(a).reserved = True
+            self.graph.get(b).reserved = True
     def next(self, iteration=True):
         if (len(self.path_container) == 0):
-            return None
+            return None, None
+        nxt = self.path_container[-1]
+        nxt1, nxt2 = nxt[0]
+        direction = nxt[1]
+        if (direction ==  1 and not self.graph.get(nxt1).reserved or 
+            direction == -1 and not self.graph.get(nxt2).reserved):
+            self.render()
+            if (direction ==  1 and not self.graph.get(nxt1).reserved or 
+                direction == -1 and not self.graph.get(nxt2).reserved):
+                return False, None
         if iteration:
             nxt = self.path_container.pop()
-            self.graph.get(nxt[0][0]).color = Color.GREEN
-            self.graph.get(nxt[0][1]).color = Color.GREEN
             self.render()
-        else:
-            nxt = self.path_container[-1]
-        return nxt
-
+        return True, nxt
     def __repr__(self):
         return "Path:\n" + "\n".join(f"    {a, b}" for a, b in self.path_container)
+    def regenerate_path(self, train, mode="BFS"):
+        return FindPath(train, self.graph, self.final_point[0], 
+                                      side=self.final_point[1], 
+                                      safe=self.final_point[2]).gen_path(mode=mode)
+    def clear(self):
+        i = -1
+        while (i >= -len(self.path_container)):
+            print(i)
+            a, b = self.path_container[i][0]
+            print(a, b)
+            if self.graph.get(a).reserved or self.graph.get(b).reserved:
+                self.graph.get(a).reserved = False
+                self.graph.get(b).reserved = False
+            else:
+                break
+            i -= 1
 
 
-
+ 
 class FindPath:
     img_train = None
     dest = None
     graph = None
     stopcond = None #  head / tail
-    def __init__(self, train, graph, where_unit_supposed_to_be_pos, side="head"):
+    safe = False
+    def __init__(self, train, graph, where_unit_supposed_to_be_pos, side="head", safe=False):
         self.img_train = ImaginaryTrain(train, graph)
         self.dest = where_unit_supposed_to_be_pos
         self.graph = graph
         self.stopcond = side
+        self.safe = safe
     def gen_path(self, find_all=False, mode="BFS"):
         if mode == "BFS":
-            history, ans = self.bfs(find_all)
+            history, ans = self.bfs(find_all, safe_mode=self.safe)
         if len(ans) == 0:
             return None
         else:
 
             pth = [(ans[0].get_snake_pos(), 0)]
-            while history[pth[-1][0]][0] is not (None, None, None):
+            while history[pth[-1][0]][0] != (None, None, None):
                 pth.append(history[pth[-1][0]])
                 #print("uf:", pth[-1])
             spath = []
@@ -62,8 +100,9 @@ class FindPath:
             for ends, drct in pth[::-1]:
                 spath.append((ends, shift))
                 shift = drct
-            return Path(self.graph, spath[:0:-1])
-    def bfs(self, find_all):
+            final_point = (self.dest, self.stopcond, self.safe)
+            return Path(self.graph, spath[:0:-1], final_point=final_point)
+    def bfs(self, find_all, safe_mode=False):
         history = {self.img_train.get_snake_pos() : ((None, None, None), 1)}
         queue = [self.img_train] 
         next_level = []
@@ -77,7 +116,9 @@ class FindPath:
                     ans.append(q)
                     if not find_all: found = True
                 allhead, alltail = q.allowed_moves()
-                for nx_gen, fif in ([(q.move(am, forward=True), 1) for am in allhead] + [(q.move(am, forward=False), -1) for am in alltail]):
+                for nx_gen, fif in ([(q.move(am, forward=True, safe_mode=safe_mode), 1) for am in allhead] + [(q.move(am, forward=False), -1) for am in alltail]):
+                    if nx_gen is None:
+                        continue
                     if nx_gen.get_snake_pos() not in history:
                         history[nx_gen.get_snake_pos()] = (q.get_snake_pos(), fif)
                         #print("++")
@@ -124,8 +165,10 @@ class ImaginaryTrain:
         #print("iAllowed:", allowed)
         return allowed_head, allowed_tail
 
-    def move(self, to_pos, forward=None):
+    def move(self, to_pos, forward=None, safe_mode=False):
         moved_train = ImaginaryTrain(self, self.graph)
+        if safe_mode and self.graph.get(to_pos).reserved:
+            return None
         if (forward == True):
             moved_train.snake = [to_pos] + moved_train.snake[:-1]
         if (forward == False):

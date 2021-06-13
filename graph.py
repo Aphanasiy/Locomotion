@@ -5,7 +5,8 @@ from dictionary import Color
 
 class Graph: 
     edges = {}
-    def __init__(self, m, n):
+    def __init__(self, n, m):
+        pass
 
     # def up(self, j, i): return i + (2 * self.m + 1) * j    
     # def left(self, j, i): return i + (2 * self.m + 1) * j + self.m    
@@ -45,6 +46,9 @@ class Graph:
             for z, e in self.edges[blocks].items():
                 yield e
 
+    def get_edges_by_block(self, x, y):
+        return [self.get((x, y, z)) for z in self.edges[(x, y)]]
+
     def render(self, sc):
         for e in self.get_edges():
             e.render(sc)
@@ -55,17 +59,23 @@ class Graph:
 
 class Edge:
     pos = (None, None, None)
-    color = Color.GREEN
     unit = None
-    def __init__(self, pos):
+    reserved = False
+    platform = None
+    def __init__(self, pos, platform=None):
         self.pos = pos
+        self.platform = platform
 
 
     def render(self, sc, edge=True, unit=False):
         if edge:
-            render.edge(sc, self)
+            color = Color.PATH_BASE if not self.reserved else Color.PATH_RESERVED
+            render.edge(sc, self, color)
+            render.draw_platform(sc, *self.pos[:2], self.platform)
         if unit and self.unit is not None:
             render.unit(sc, self.unit)    
 
     def __repr__(self):
         return f"Edge(pos: {self.pos} | unit: {self.unit})"
+
+    def is_reserved(self): return self.reserved

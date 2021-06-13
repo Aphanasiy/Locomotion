@@ -7,9 +7,11 @@ import algorithms
 import render
 import parsing
 
-MAP = "olivier.map"
+FRAMETIME = 33
 
-yard, graph, units, trains = parsing.parse_map(MAP)
+MAP = "olivier"
+
+yard, graph, units, trains = parsing.parse_map(f"maps/{MAP}/main.map")
 
 X, Y = len(yard[0]), len(yard)
 
@@ -34,7 +36,7 @@ while GAME:
     render.block_highlight(sc, bpos)
 
     for t in trains[1:]:
-        print(t)
+        #print(t)
         t.process()
     
     #Rails ans units
@@ -44,7 +46,7 @@ while GAME:
 
     render.push(display, sc)
     pg.display.update()
-    pg.time.delay(33)
+    pg.time.delay(FRAMETIME)
 
     # Hotkeys
     j += 1
@@ -103,6 +105,22 @@ while GAME:
                     else: 
                         print("<MVH ERROR>")
                 if (command == "MVT"):
+                    if (len(args) == 4):
+                        who, *pos = map(int, args)
+                        path = algorithms.FindPath(trains[who], graph, tuple(pos), side="tail").gen_path()
+                        print(path)
+                        trains[who].set_path(path)
+                    else: 
+                        print("<MVT ERROR>")
+                if (command == "SMV" or command == "SMVH"):
+                    if (len(args) == 4):
+                        who, *pos = map(int, args)
+                        path = algorithms.FindPath(trains[who], graph, tuple(pos), safe=True).gen_path()
+                        print(path)
+                        trains[who].set_path(path)
+                    else: 
+                        print("<MVH ERROR>")
+                if (command == "SMVT"):
                     if (len(args) == 4):
                         who, *pos = map(int, args)
                         path = algorithms.FindPath(trains[who], graph, tuple(pos), side="tail").gen_path()
