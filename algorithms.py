@@ -25,12 +25,12 @@ class Path():
         for i in range(len(self.path_container) - 1, -1, -1):
             a, b = self.path_container[i][0]
             direction = self.path_container[i][1]
-            print(a, b)
+            #print(a, b)
             is_reserved = any(map(lambda x: x.reserved,
                                   (self.graph.get_edges_by_block(*a[:2]) if direction ==  1 else []) + \
                                   (self.graph.get_edges_by_block(*b[:2]) if direction == -1 else [])))    
             if is_reserved: break
-        print("-|-|-", i, len(self.path_container))
+        #print("-|-|-", i, len(self.path_container))
         for p in self.path_container[i + is_reserved * 2:]:
             a, b = p[0]
             self.graph.get(a).reserved = True
@@ -60,9 +60,9 @@ class Path():
     def clear(self):
         i = -1
         while (i >= -len(self.path_container)):
-            print(i)
+            #print(i)
             a, b = self.path_container[i][0]
-            print(a, b)
+            #print(a, b)
             if self.graph.get(a).reserved or self.graph.get(b).reserved:
                 self.graph.get(a).reserved = False
                 self.graph.get(b).reserved = False

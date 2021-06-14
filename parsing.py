@@ -4,6 +4,7 @@ from glyphs import TERMS, NAMES, term_to_str, str_to_term
 from units import *
 from dictionary import Good
 from graph import *
+import scenario
 
 BATCH = 3
 
@@ -82,11 +83,11 @@ def parse_units(fin, t, graph):
             good_load = Good.EMPTY
             loaded = 0
             if len(oth) >= 1:
-                capacity, oth = oth[0], oth[1:]
+                capacity, oth = int(oth[0]), oth[1:]
             if len(oth) >= 1:
                 good_load, oth = eval(oth[0]), oth[1:]
             if len(oth) >= 1:
-                loaded, oth = eval(oth[0]), oth[1:]
+                loaded, oth = int(oth[0]), oth[1:]
 
             wagon_type = Unit
             
@@ -108,7 +109,8 @@ def parse_units(fin, t, graph):
 
 def parse_scenario(file):
     fin = open(file, 'r')
-    tasks = fin.readlines()
+    tasklist = scenario.Scenario(fin)
+    return tasklist
 
 
 

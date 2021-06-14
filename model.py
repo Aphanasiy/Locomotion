@@ -7,7 +7,7 @@ import algorithms
 import render
 import parsing
 
-FRAMETIME = 33
+FRAMETIME = 1000 #33
 
 MAP = "olivier"
 
@@ -25,7 +25,7 @@ pg.display.update()
 
 #print(*yard, sep='\n')
 
-j = 0
+ticks = 0
 GAME = True
 while GAME:
     #Not-rail infrastructure
@@ -49,7 +49,7 @@ while GAME:
     pg.time.delay(FRAMETIME)
 
     # Hotkeys
-    j += 1
+    ticks += 1
     for i in pg.event.get():
         
         # if (i.type not in (pg.MOUSEMOTION, pg.WINDOWMOVED)):
@@ -76,20 +76,20 @@ while GAME:
                 print([message])
                 command, *args = message.split()
                 print(command, args)
-                if (command == "SM"):
-                    if len(args) == 4:
-                        who, x, y, z = map(int, args)
-                        trains[who].single_move((x, y, z))
-                    else:
-                        print("<SM ERROR>")
-                if (command == "CC"):
+                # if (command == "SM"):
+                #     if len(args) == 4:
+                #         who, x, y, z = map(int, args)
+                #         trains[who].single_move((x, y, z))
+                #     else:
+                #         print("<SM ERROR>")
+                if (command == "C"):
                     if (len(args) == 2):
                         who, unit_id = map(int, args)
                         trains[who].couple(graph, units[unit_id])
                         print(algorithms.ImaginaryTrain(trains[who], graph).allowed_moves())
 
                     else:
-                        print("<CC ERROR>")
+                        print("<COUPLING ERROR>")
                 if (command == "UC"):
                     if (len(args) == 2):
                         who, amount = map(int, args)
@@ -119,7 +119,7 @@ while GAME:
                         print(path)
                         trains[who].set_path(path)
                     else: 
-                        print("<MVH ERROR>")
+                        print("<SMVH ERROR>")
                 if (command == "SMVT"):
                     if (len(args) == 4):
                         who, *pos = map(int, args)
@@ -127,7 +127,22 @@ while GAME:
                         print(path)
                         trains[who].set_path(path)
                     else: 
-                        print("<MVT ERROR>")
+                        print("<SMVT ERROR>")
+                if (command == "UL"):
+                    if (len(args) == 2):
+                        who, count = map(int, args)
+                        units[who].unload(count)
+                    else:
+                        print("<UNLOAD ERROR>")
+                if (command == "L"):
+                    if (len(args) == 3):
+                        who, count = map(int, args[:2])
+                        good_name = args[2]
+                        units[who].load(count, good_name)
+                    else:
+                        print("<LOAD ERROR>")
+                
+
 
     # Exit confitions
     pressed_keys = pg.key.get_pressed()

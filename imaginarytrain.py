@@ -35,7 +35,7 @@ class ImaginaryTrain:
             allowed_head = set(filter(fdeny(self.snake[1]) , allowed_head))
             allowed_tail = set(filter(fdeny(self.snake[-2]), allowed_tail))
         allowed = allowed_head | allowed_tail
-        print("iAllowed:", allowed)
+        #print("iAllowed:", allowed)
         return allowed_head, allowed_tail
 
     def move(self, to_pos, forward=None):

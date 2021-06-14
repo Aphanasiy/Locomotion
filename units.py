@@ -51,11 +51,25 @@ class Wagon(Unit):
         self.good_loaded = good
         self.loaded = loaded
 
-    def load():
-        pass
+    def load(self, count, loading_good):
+        if self.edge.platform is None:
+            raise Exception("Wagon is not at the platform")
+        loading_good = eval(f"Good.{loading_good}")
+        if self.good_loaded != Good.EMPTY and loading_good != self.good_loaded:
+            raise Exception("There's another good type already in the wagon")
+        self.good_loaded = loading_good
+        self.loaded += count
+        if self.loaded > self.capacity:
+            raise Exception("The capacity of the wagon is less than load task says")
 
-    def unload():
-        pass
+    def unload(self, count):
+        if self.edge.platform is None:
+            raise Exception("Wagon is not at the platform")
+        self.loaded -= count
+        if (self.loaded == 0):
+            self.good_loaded = Good.EMPTY
+        if (self.loaded < 0):
+            raise Exception("There are less goods in wagon than unload task says")
 
     def __repr__(self):
         return f"<Unit ID: {self.id} | Position {self.edge.pos} | {type(self).__name__} | Loaded: {self.good_loaded.value} ({self.loaded}/{self.capacity}) >"
@@ -206,7 +220,7 @@ class Train:
             else:
                 allowed_tail = set(filter(fdeny(self.wagons[-2]), allowed_tail))
         allowed = allowed_head | allowed_tail
-        print("Allowed:", allowed)
+        #print("Allowed:", allowed)
         
         return allowed_head, allowed_tail
 
@@ -255,7 +269,7 @@ class Train:
         self.path = path
         self.previous_status = None
         print("Path setted")
-        print(self.path.path_container)
+        #print(self.path.path_container)
 
     def process(self):
         if self.path is None:
@@ -265,7 +279,7 @@ class Train:
             return
         
         allowed, next_move = self.path.next(False)
-        print(">>> ", self.id, allowed, self.previous_status)
+        #print(">>> ", self.id, allowed, self.previous_status)
         if allowed is None:
             self.previous_status = allowed
             self.path = None
@@ -274,7 +288,7 @@ class Train:
             return
         elif allowed:
             if (self.previous_status is not None and self.previous_status == False):
-                print("!!! !!! !!! GEN_NEW_PATH !!! !!! !!!")
+                #print("!!! !!! !!! GEN_NEW_PATH !!! !!! !!!")
                 new_path = self.path.regenerate_path(self)
                 if (new_path is None):
                     previous_status = False
@@ -310,9 +324,10 @@ class Train:
         #print(allowed, [graph.get(x).unit for x in allowed])
         if (not unit in [graph.get(x).unit for x in allowed]):
             print(f"Failed to couple {unit} to {self})")
-        else:
-            self.wagons.append(unit)
-            unit.coupled=True
+            return False
+        self.wagons.append(unit)
+        unit.coupled=True
+        return True
 
     def uncouple(self, n):
         for w in self.wagons[-n:]:
